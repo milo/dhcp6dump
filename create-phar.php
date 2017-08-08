@@ -5,26 +5,39 @@ if (!class_exists('Phar') || ini_get('phar.readonly')) {
 	exit(1);
 }
 
-$fileName = 'dhcp6dump.phar';
+$files = [
+	'dhcp6dump.php',
+	'src/DHCPv6Dumper.php',
+	'src/DHCPv6Messages.php',
+	'src/DHCPv6Options.php',
+	'src/DHCPv6VendorOptions.php',
+	'src/IANAEnterpriseNumbers.php',
+	'src/StringReader.php',
+];
 
-@unlink($fileName);  # @ - file may not exist
-$phar = new Phar($fileName);
-$phar->setStub(
-"#!/usr/bin/env php
-<?php
-require 'phar://' . __FILE__ . '/dhcp6dump.php';
-__HALT_COMPILER();
-");
+function createPhar(string $fileName, array $files, callable $loader)
+{
+	$stubCode = [
+		'#!/usr/bin/env php',
+		'<?php',
+		"Phar::mapPhar('dhcp6dump.phar');",
+		"require 'phar://dhcp6dump.phar/dhcp6dump.php';",
+		'__HALT_COMPILER();',
+	];
 
-$phar->startBuffering();
-$phar['dhcp6dump.php'] = file_get_contents(__DIR__ . '/dhcp6dump.php');
-$phar['src/DHCPv6Dumper.php'] = file_get_contents(__DIR__ . '/src/DHCPv6Dumper.php');
-$phar['src/DHCPv6Messages.php'] = file_get_contents(__DIR__ . '/src/DHCPv6Messages.php');
-$phar['src/DHCPv6Options.php'] = file_get_contents(__DIR__ . '/src/DHCPv6Options.php');
-$phar['src/DHCPv6VendorOptions.php'] = file_get_contents(__DIR__ . '/src/DHCPv6VendorOptions.php');
-$phar['src/IANAEnterpriseNumbers.php'] = file_get_contents(__DIR__ . '/src/IANAEnterpriseNumbers.php');
-$phar['src/StringReader.php'] = file_get_contents(__DIR__ . '/src/StringReader.php');
-$phar->stopBuffering();
-$phar->compressFiles(Phar::GZ);
+	if (is_file($fileName)) {
+		unlink($fileName);
+	}
 
-chmod($fileName, 0755);
+	$phar = new Phar($fileName);
+	$phar->setStub(implode("\n", $stubCode) . "\n");
+	$phar->startBuffering();
+	foreach ($files as $file) {
+		$phar[$file] = $loader(__DIR__ . "/$file");
+	}
+	$phar->stopBuffering();
+	$phar->compressFiles(Phar::GZ);
+	chmod($fileName, 0755);
+}
+
+createPhar('dhcp6dump.phar', $files, 'file_get_contents');
