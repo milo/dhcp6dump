@@ -46,7 +46,7 @@ class DHCPv6Dumper
 	}
 
 
-	public function dump(): void
+	public function dump()
 	{
 		# Ethernet Frame
 		#     48b destination MAC
@@ -126,7 +126,7 @@ class DHCPv6Dumper
 	}
 
 
-	private function dumpPacket(StringReader $data): void
+	private function dumpPacket(StringReader $data)
 	{
 		# DHCPv6 relay packet
 		#       8b message type
@@ -167,7 +167,7 @@ class DHCPv6Dumper
 	}
 
 
-	private function dumpOption(int $code, string $data): void
+	private function dumpOption(int $code, string $data)
 	{
 		$this->outf('Option: %u (%s)', $code, DHCPv6Options::getName($code));
 		$this->indent++;
@@ -260,7 +260,7 @@ class DHCPv6Dumper
 	}
 
 
-	private function dumpDuid(string $data): void
+	private function dumpDuid(string $data)
 	{
 		$data = new StringReader($data);
 		$type = $this->unpack('n', $data->read(2));
@@ -304,7 +304,7 @@ class DHCPv6Dumper
 	}
 
 
-	private function dumpVendorOptions(int $vendor, string $data): void
+	private function dumpVendorOptions(int $vendor, string $data)
 	{
 		$len = \strlen($data);
 		$pos = 0;
@@ -329,7 +329,7 @@ class DHCPv6Dumper
 	}
 
 
-	private function hexDump(string $s): void
+	private function hexDump(string $s)
 	{
 		static $chunkLen = 16;
 
@@ -354,19 +354,19 @@ class DHCPv6Dumper
 	}
 
 
-	private function notice(string $message): void
+	private function notice(string $message)
 	{
 		$this->out("NOTICE: $message");
 	}
 
 
-	private function out(string $line): void
+	private function out(string $line)
 	{
 		echo \str_repeat('    ', $this->indent) . $line . "\n";
 	}
 
 
-	private function outf(string $format, ...$args): void
+	private function outf(string $format, ...$args)
 	{
 		$this->out(\sprintf($format, ...$args));
 	}
