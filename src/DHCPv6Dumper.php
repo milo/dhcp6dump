@@ -211,6 +211,19 @@ class DHCPv6Dumper
 			$this->dumpPacket(new StringReader($data));
 			$this->indent--;
 
+		} elseif ($code === DHCPv6Options::STATUS_CODE) {
+			static $statusCodes = [
+				0 => 'Success',
+				1 => 'Unspecified Failure',
+				2 => 'No Addresses Available',
+				3 => 'No Binding',
+				4 => 'Not On Link',
+				5 => 'Use Multicast',
+			];
+
+			$this->outf('Code: %u (%s)', $code = $this->unpack('n', \substr($data, 0, 2)), $statusCodes[$code] ?? '?');
+			$this->outf('Message: %s', \substr($data, 2));
+
 		} elseif ($code === DHCPv6Options::VENDOR_CLASS) {
 			$this->outf('Enterprise Number: %u (%s)', $en = $this->unpack('N', \substr($data, 0, 4)), IANAEnterpriseNumbers::getVendor($en, 'TODO'));
 
