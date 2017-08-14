@@ -166,11 +166,17 @@ class DHCPv6Dumper
 			$this->outf('Transaction ID: 0x%06X', ($tmp->h << 16) | $tmp->l);
 		}
 
-		while ($remain > 0) {
+		$this->dumpOptions($data, $remain);
+	}
+
+
+	private function dumpOptions(StringReader $data, int $dataLength)
+	{
+		while ($dataLength > 0) {
 			$code = $this->unpack('n', $data->read(2));
 			$length = $this->unpack('n', $data->read(2));
 			$this->dumpOption($code, $data->read($length));
-			$remain -= 4 + $length;
+			$dataLength -= 4 + $length;
 		}
 	}
 
@@ -197,10 +203,7 @@ class DHCPv6Dumper
 			$this->outf('T1: %us', $en->t1);
 			$this->outf('T1: %us', $en->t2);
 			if (\strlen($data) > 12) {
-				$this->out('Data:');
-				$this->indent++;
-				$this->hexDump(\substr($data, 12));
-				$this->indent--;
+				$this->dumpOptions($tmp = new StringReader(\substr($data, 12)), $tmp->length);
 			}
 
 		} elseif ($code === DHCPv6Options::ORO) {
