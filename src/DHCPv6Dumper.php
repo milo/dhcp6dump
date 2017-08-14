@@ -206,6 +206,12 @@ class DHCPv6Dumper
 				$this->dumpOptions($tmp = new StringReader(\substr($data, 12)), $tmp->length);
 			}
 
+		} elseif ($code === DHCPv6Options::IA_TA) {
+			$this->outf('IAID: %u', $this->unpack('N', $data));
+			if (\strlen($data) > 4) {
+				$this->dumpOptions($tmp = new StringReader(\substr($data, 4)), $tmp->length);
+			}
+
 		} elseif ($code === DHCPv6Options::IAADDR) {
 			$this->outf('Address: %s', inet_ntop(\substr($data, 0, 16)));
 			$this->outf('Preferred life time: %us', $this->unpack('N', \substr($data, 16, 4)));
