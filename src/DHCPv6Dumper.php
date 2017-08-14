@@ -206,6 +206,17 @@ class DHCPv6Dumper
 				$this->dumpOptions($tmp = new StringReader(\substr($data, 12)), $tmp->length);
 			}
 
+		} elseif ($code === DHCPv6Options::IAADDR) {
+			$this->outf('Address: %s', inet_ntop(\substr($data, 0, 16)));
+			$this->outf('Preferred life time: %us', $this->unpack('N', \substr($data, 16, 4)));
+			$this->outf('Valid life time: %us', $this->unpack('N', \substr($data, 20, 4)));
+			if (\strlen($data) > 24) {
+				$this->out('TODO');
+				$this->indent++;
+				$this->hexDump(\substr($data, 24));
+				$this->indent--;
+			}
+
 		} elseif ($code === DHCPv6Options::ORO) {
 			foreach (\unpack('n*c', $data) as $c) {
 				$this->outf('%2u (%s)', $c, DHCPv6Options::getName($c));
