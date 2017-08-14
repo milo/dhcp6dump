@@ -193,7 +193,7 @@ class DHCPv6Dumper
 
 		} elseif ($code === DHCPv6Options::IA_NA) {
 			$en = $this->unpack('Niaid/Nt1/Nt2', $data);
-			$this->outf('IAID: 0x%08X', $en->iaid);
+			$this->outf('IAID: %u', $en->iaid);
 			$this->outf('T1: %us', $en->t1);
 			$this->outf('T1: %us', $en->t2);
 			if (\strlen($data) > 12) {
