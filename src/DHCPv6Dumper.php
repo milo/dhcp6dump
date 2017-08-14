@@ -45,8 +45,10 @@ class DHCPv6Dumper
 	}
 
 
-	public function dump()
+	public function dump(string $prefix = '')
 	{
+		$this->out($prefix);
+
 		# Ethernet Frame
 		#     48b destination MAC
 		#     48b source MAC
