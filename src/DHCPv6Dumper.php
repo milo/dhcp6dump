@@ -197,7 +197,7 @@ class DHCPv6Dumper
 		if (in_array($code, [DHCPv6Options::CLIENTID, DHCPv6Options::SERVERID, DHCPv6Options::RELAY_ID], true)) {
 			$this->dumpDuid($data);
 
-		} elseif ($code === DHCPv6Options::IA_NA) {
+		} elseif ($code === DHCPv6Options::IA_NA || $code === DHCPv6Options::IA_PD) {
 			$en = $this->unpack('Niaid/Nt1/Nt2', $data);
 			$this->outf('IAID: %u', $en->iaid);
 			$this->outf('T1: %us', $en->t1);
