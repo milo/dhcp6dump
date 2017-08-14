@@ -47,6 +47,7 @@ class DHCPv6Dumper
 
 	public function dump(string $prefix = '')
 	{
+		ob_start();
 		$this->out($prefix);
 
 		# Ethernet Frame
@@ -60,6 +61,7 @@ class DHCPv6Dumper
 
 		if ($ethFrameType !== self::ETH_TYPE_IPV6) {
 			$this->notice('Ethernet frame is not type of IPv6.');
+			$this->beVerbose ? ob_end_flush() : ob_end_clean();
 			return;
 		}
 
@@ -85,11 +87,13 @@ class DHCPv6Dumper
 		$ipv6Version = $ipv6->h1 >> 28;
 		if ($ipv6Version !== self::PACKET_VERSION_6) {
 			$this->notice('Packet is not version of 6.');
+			$this->beVerbose ? ob_end_flush() : ob_end_clean();
 			return;
 		}
 
 		if ($ipv6->nextHeader !== self::PACKET_TYPE_UDP) {
 			$this->notice('Packet is not type of UDP.');
+			$this->beVerbose ? ob_end_flush() : ob_end_clean();
 			return;
 		}
 
@@ -107,10 +111,12 @@ class DHCPv6Dumper
 		$udp = $this->unpack('nsrcPort/ndstPort/npayloadLength/nchecksum', $this->data->read(8));
 		if (!in_array($udp->srcPort, [546, 547], true)) {
 			$this->notice('UDP source port is not 546 or 547.');
+			$this->beVerbose ? ob_end_flush() : ob_end_clean();
 			return;
 		}
 		if (!in_array($udp->dstPort, [546, 547], true)) {
 			$this->notice('UDP destination port is not 546 or 547.');
+			$this->beVerbose ? ob_end_flush() : ob_end_clean();
 			return;
 		}
 
@@ -124,6 +130,7 @@ class DHCPv6Dumper
 		}
 
 		$this->dumpPacket(new StringReader($data));
+		ob_end_flush();
 	}
 
 
