@@ -29,20 +29,19 @@ class DHCPv6Dumper
 	];
 
 
+	/** @var bool */
+	public $beVerbose = false;
+
 	/** @var StringReader */
 	private $data;
 
 	/** @var int */
 	private $indent = 0;
 
-	/** @var bool */
-	private $verbose;
 
-
-	public function __construct(string $data, bool $verbose)
+	public function __construct(string $data)
 	{
 		$this->data = new StringReader($data);
-		$this->verbose = $verbose;
 	}
 
 
@@ -114,7 +113,7 @@ class DHCPv6Dumper
 		}
 
 		$data = $this->data->read($udp->payloadLength - 8);  # 8B = UDP header length
-		if ($this->verbose) {
+		if ($this->beVerbose) {
 			$this->out('Raw data:');
 			$this->indent++;
 			$this->hexDump($data);
@@ -172,7 +171,7 @@ class DHCPv6Dumper
 		$this->outf('Option: %u (%s)', $code, DHCPv6Options::getName($code));
 		$this->indent++;
 
-		if ($this->verbose) {
+		if ($this->beVerbose) {
 			$this->out('Raw data:');
 			$this->indent++;
 			$this->hexDump($data);
@@ -263,7 +262,7 @@ class DHCPv6Dumper
 
 		} else {
 			$this->out('TODO');
-			if (!$this->verbose) {
+			if (!$this->beVerbose) {
 				$this->hexDump($data);
 			}
 		}

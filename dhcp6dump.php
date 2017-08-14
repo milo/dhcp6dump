@@ -141,6 +141,8 @@ foreach (packets($input, $swapped) as list($header, $data)) {
 	$count++;
 	echo sprintf('No.%u (%s.%06u UTC)', $count, date('Y-m-d H:i:s', $header->sec), $header->usec) . "\n";  # TODO: Zone & sigfix correction
 	echo "\n";
-	(new DHCPv6Dumper($data, isset($opts['v'])))->dump();
+	$dumper = new DHCPv6Dumper($data);
+	$dumper->beVerbose = isset($opts['v']);
+	$dumper->dump();
 	echo str_repeat('-', 80) . "\n";
 }
