@@ -22,7 +22,7 @@ function usage() {
 		: ('./' . basename(\Phar::running(false)));
 
 	echo <<<HELP
-Usage: tcpdump -nn -i eth0 -s 0 -w - port 546 or port 547 | $tmp
+Usage: tcpdump -nn -i eth0 -s 0 -U -w - port 546 or port 547 | $tmp
 
     -v    be verbose and always hex dump every message and option
 

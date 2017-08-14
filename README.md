@@ -9,11 +9,11 @@ PHP 7+ is required.
 0) `apt-get install php-cli`
 1) Download [latest PHAR](https://github.com/milo/dhcp6dump/releases/latest) archive.
 2) `chmod 755 dhcp6dump.phar`
-3) `tcpdump -nn -i eth0 -s 0 -w - port 546 or port 547 | ./dhcp6dump.phar`
+3) `tcpdump -nn -i eth0 -s 0 -U -w - port 546 or port 547 | ./dhcp6dump.phar`
 
 If you don't set execution bit, you can invoke PHAR by `php dhcp6dump.phar`.
 
-Utility has few CLI options. Run `./dhcp6dump.phar -h` to show them.
+Utility has some CLI options. Run `./dhcp6dump.phar -h` to show them.
 
 
 
