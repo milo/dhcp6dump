@@ -23,7 +23,9 @@ class StringReader
 
 	public function read(int $length): string
 	{
-		return \fread($this->stream, $length);
+		return $length > 0
+			?  \fread($this->stream, $length)
+			: '';
 	}
 
 
