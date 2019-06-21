@@ -7,7 +7,9 @@ class DHCPv6Dumper
 {
 	const HW_TYPE_ETHERNET = 1;
 
-	const ETH_TYPE_IPV6 = 0x86dd;
+	const
+		ETH_TYPE_VLAN = 0x8100,
+		ETH_TYPE_IPV6 = 0x86dd;
 
 	const PACKET_VERSION_6 = 6;
 
@@ -59,12 +61,20 @@ class DHCPv6Dumper
 		$ethSrcMac = self::decodeMac($this->data->read(6));
 		$ethFrameType = $this->unpack('n', $this->data->read(2));
 
+		if ($ethFrameType === self::ETH_TYPE_VLAN) {
+			$vlanId = $this->unpack('n', $this->data->read(2)) & 0x0FFF;
+			$ethFrameType = $this->unpack('n', $this->data->read(2));
+		}
+
 		if ($ethFrameType !== self::ETH_TYPE_IPV6) {
 			$this->notice('Ethernet frame is not type of IPv6.');
 			$this->beVerbose ? ob_end_flush() : ob_end_clean();
 			return;
 		}
 
+		if (isset($vlanId)) {
+			$this->outf('VLAN ID: %d', $vlanId);
+		}
 		$this->outf('Eth Src: %s', $ethSrcMac);
 		$this->outf('Eth Dst: %s', $ethDstMac);
 		$this->out('');
