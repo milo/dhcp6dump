@@ -24,17 +24,16 @@ function usage() {
 	echo <<<HELP
 Usage: tcpdump -nn -i eth0 -s 0 -U -w - port 546 or port 547 | $tmp
 
-    -v        be verbose and always hex dump every message and option
-    -m <mac>  show only packets containing anywhere this MAC
+    -v    be verbose and always hex dump every message and option
 
-    -V        show version
-    -h        show this help
+    -V    show version
+    -h    show this help
 
 HELP;
 }
 
 
-$opts = getopt('m:vVh');
+$opts = getopt('vVh');
 if (isset($opts['h'])) {
 	usage();
 	exit(0);
@@ -146,8 +145,5 @@ foreach (packets($input, $swapped) as list($header, $data)) {
 
 	$dumper = new DHCPv6Dumper($data);
 	$dumper->beVerbose = isset($opts['v']);
-	if (isset($opts['m'])) {
-		$dumper->setFilterMac($opts['m']);
-	}
 	$dumper->dump($prefix);
 }

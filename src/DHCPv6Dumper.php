@@ -38,63 +38,10 @@ class DHCPv6Dumper
 	/** @var int */
 	private $indent = 0;
 
-	/** @var string */
-	private $filterMac;
-
 
 	public function __construct(string $data)
 	{
 		$this->data = new StringReader($data);
-	}
-
-
-	public static function isValidMac(string $address): bool
-	{
-		static $re = '/^(?:
-			[0-9a-f]{2}(?::[0-9a-f]{2}){5}  # 00:00:00:00:00:00
-			|
-			[0-9a-f]{2}(?:-[0-9a-f]{2}){5}  # 00-00-00-00-00-00
-			|
-			[0-9a-f]{2}(?:_[0-9a-f]{2}){5}  # 00_00_00_00_00_00
-			|
-			[0-9a-f]{2}(?:\s[0-9a-f]{2}){5} # 00 00 00 00 00 00
-			|
-			[0-9a-f]{4}(?:\.[0-9a-f]{4}){2} # 0000.0000.0000
-			|
-			[0-9a-f]{6}[:-][0-9a-f]{6}      # 000000:000000, 000000-000000
-			|
-			[0-9a-f]{12}                    # 000000000000
-		)\z/ix';
-
-		return (bool) preg_match($re, $address);
-	}
-
-
-	public function setFilterMac(string $address = null)
-	{
-		static $re = '/^(?:
-			[0-9a-f]{2}(?::[0-9a-f]{2}){5}  # 00:00:00:00:00:00
-			|
-			[0-9a-f]{2}(?:-[0-9a-f]{2}){5}  # 00-00-00-00-00-00
-			|
-			[0-9a-f]{2}(?:_[0-9a-f]{2}){5}  # 00_00_00_00_00_00
-			|
-			[0-9a-f]{2}(?:\s[0-9a-f]{2}){5} # 00 00 00 00 00 00
-			|
-			[0-9a-f]{4}(?:\.[0-9a-f]{4}){2} # 0000.0000.0000
-			|
-			[0-9a-f]{6}[:-][0-9a-f]{6}      # 000000:000000, 000000-000000
-			|
-			[0-9a-f]{12}                    # 000000000000
-		)\z/ix';
-
-		if ($address === null) {
-			$this->filterMac = null;
-		} elseif (!self::isValidMac($address)) {
-			throw new \LogicException("MAC '$address' has no valid syntax.");
-		}
-
-		$this->filterMac = preg_replace('#[^0-9a-f]#', '', strtolower($address));
 	}
 
 
