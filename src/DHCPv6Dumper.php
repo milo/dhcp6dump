@@ -285,9 +285,14 @@ class DHCPv6Dumper
 					$cnt++;
 					$len = $this->unpack('n', \substr($data, $pos, 2));
 					$pos += 2;
+					$tmp = \substr($data, $pos, $len);
 					$this->out("No.$cnt");
 					$this->indent++;
-					$this->hexDump(\substr($data, $pos, $len));
+					if (preg_match('/^[a-z0-9\x20-\x3F]+$/iu', $tmp)) {
+						$this->out($tmp);
+					} else {
+						$this->hexDump(\substr($data, $pos, $len));
+					}
 					$this->indent--;
 					$pos += $len;
 				}
