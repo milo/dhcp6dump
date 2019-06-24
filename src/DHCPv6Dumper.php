@@ -329,13 +329,12 @@ class DHCPv6Dumper
 				$this->outf('%s', \substr($data, 2, $len));
 				break;
 
-			case DHCPv6Options::RAPID_COMMIT:
-				break;
-
 			default:
-				$this->out('TODO');
-				if (!$this->beVerbose) {
-					$this->hexDump($data);
+				if ($data !== '') {  # zero-length options are flags
+					$this->out('TODO');
+					if (!$this->beVerbose) {
+						$this->hexDump($data);
+					}
 				}
 				break;
 		}
