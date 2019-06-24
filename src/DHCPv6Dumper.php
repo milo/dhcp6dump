@@ -37,13 +37,17 @@ class DHCPv6Dumper
 	/** @var StringReader */
 	private $data;
 
+	/** @var string */
+	private $outFile;
+
 	/** @var int */
 	private $indent = 0;
 
 
-	public function __construct(string $data)
+	public function __construct(string $data, string $outFile)
 	{
 		$this->data = new StringReader($data);
+		$this->outFile = $outFile;
 	}
 
 
@@ -140,7 +144,7 @@ class DHCPv6Dumper
 		}
 
 		$this->dumpPacket(new StringReader($data));
-		ob_end_flush();
+		file_put_contents($this->outFile, ob_get_clean(), FILE_APPEND);
 	}
 
 
