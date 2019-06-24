@@ -18,8 +18,8 @@ define('DHCP6DUMPER_VERSION', '6');
 
 function usage() {
 	$tmp = \Phar::running() === ''
-		? ('php ' . basename(__FILE__))
-		: ('./' . basename(\Phar::running(false)));
+		? ('php ' . __FILE__)
+		: (\Phar::running(false));
 
 	echo <<<HELP
 Usage: tcpdump -nn -i eth0 -s 0 -U -w - port 546 or port 547 | $tmp
