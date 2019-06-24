@@ -304,6 +304,7 @@ class DHCPv6Dumper
 				break;
 
 			case DHCPv6Options::DNS_SERVERS:
+			case DHCPv6Options::SNTP_SERVERS:
 				foreach (str_split($data, 16) as $ip) {
 					$this->out(\inet_ntop($ip));
 				}
