@@ -333,6 +333,14 @@ class DHCPv6Dumper
 				$this->outf('%s', \substr($data, 2, $len));
 				break;
 
+			case DHCPv6Options::REMOTE_ID:
+				$this->outf('Enterprise Number: %u (%s)', $en = $this->unpack('N', \substr($data, 0, 4)), IANAEnterpriseNumbers::getVendor($en, 'TODO'));
+				$this->out('Remote ID:');
+				$this->indent++;
+				$this->hexDump(\substr($data, 4));
+				$this->indent--;
+				break;
+
 			default:
 				if ($data !== '') {  # zero-length options are flags
 					$this->out('TODO');
