@@ -13,7 +13,7 @@ require __DIR__ . '/src/DHCPv6VendorOptions.php';
 require __DIR__ . '/src/IANAEnterpriseNumbers.php';
 
 
-define('DHCP6DUMPER_VERSION', '6');
+define('DHCP6DUMPER_VERSION', '7');
 
 
 function usage() {
