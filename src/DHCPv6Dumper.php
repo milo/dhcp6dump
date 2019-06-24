@@ -318,6 +318,11 @@ class DHCPv6Dumper
 				$this->outf('Host: %s', self::decodeDomain(\substr($data, 1)));
 				break;
 
+			case DHCPv6Options::USER_CLASS:
+				$len = $this->unpack('n', \substr($data, 0, 2));
+				$this->outf('%s', \substr($data, 2, $len));
+				break;
+
 			default:
 				$this->out('TODO');
 				if (!$this->beVerbose) {
