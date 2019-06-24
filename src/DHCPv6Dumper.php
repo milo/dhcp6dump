@@ -204,106 +204,126 @@ class DHCPv6Dumper
 			$this->out('');
 		}
 
-		if (in_array($code, [DHCPv6Options::CLIENTID, DHCPv6Options::SERVERID, DHCPv6Options::RELAY_ID], true)) {
-			$this->dumpDuid($data);
+		switch ($code) {
+			case DHCPv6Options::CLIENTID:
+			case DHCPv6Options::SERVERID:
+			case DHCPv6Options::RELAY_ID:
+				$this->dumpDuid($data);
+				break;
 
-		} elseif ($code === DHCPv6Options::IA_NA || $code === DHCPv6Options::IA_PD) {
-			$en = $this->unpack('Niaid/Nt1/Nt2', $data);
-			$this->outf('IAID: %u', $en->iaid);
-			$this->outf('T1: %us', $en->t1);
-			$this->outf('T1: %us', $en->t2);
-			if (\strlen($data) > 12) {
-				$this->dumpOptions($tmp = new StringReader(\substr($data, 12)), $tmp->length);
-			}
+			case DHCPv6Options::IA_NA:
+			case DHCPv6Options::IA_PD:
+				$en = $this->unpack('Niaid/Nt1/Nt2', $data);
+				$this->outf('IAID: %u', $en->iaid);
+				$this->outf('T1: %us', $en->t1);
+				$this->outf('T1: %us', $en->t2);
+				if (\strlen($data) > 12) {
+					$this->dumpOptions($tmp = new StringReader(\substr($data, 12)), $tmp->length);
+				}
+				break;
 
-		} elseif ($code === DHCPv6Options::IA_TA) {
-			$this->outf('IAID: %u', $this->unpack('N', $data));
-			if (\strlen($data) > 4) {
-				$this->dumpOptions($tmp = new StringReader(\substr($data, 4)), $tmp->length);
-			}
+			case DHCPv6Options::IA_TA:
+				$this->outf('IAID: %u', $this->unpack('N', $data));
+				if (\strlen($data) > 4) {
+					$this->dumpOptions($tmp = new StringReader(\substr($data, 4)), $tmp->length);
+				}
+				break;
 
-		} elseif ($code === DHCPv6Options::IAADDR) {
-			$this->outf('Address: %s', inet_ntop(\substr($data, 0, 16)));
-			$this->outf('Preferred life time: %us', $this->unpack('N', \substr($data, 16, 4)));
-			$this->outf('Valid life time: %us', $this->unpack('N', \substr($data, 20, 4)));
-			if (\strlen($data) > 24) {
+			case DHCPv6Options::IAADDR:
+				$this->outf('Address: %s', inet_ntop(\substr($data, 0, 16)));
+				$this->outf('Preferred life time: %us', $this->unpack('N', \substr($data, 16, 4)));
+				$this->outf('Valid life time: %us', $this->unpack('N', \substr($data, 20, 4)));
+				if (\strlen($data) > 24) {
+					$this->out('TODO');
+					$this->indent++;
+					$this->hexDump(\substr($data, 24));
+					$this->indent--;
+				}
+				break;
+
+			case DHCPv6Options::ORO:
+				foreach (\unpack('n*c', $data) as $c) {
+					$this->outf('%2u (%s)', $c, DHCPv6Options::getName($c));
+				}
+				break;
+
+			case DHCPv6Options::PREFERENCE:
+				$this->outf('%u (0x%02X)', $pref = $this->unpack('C', $data), $pref);
+				break;
+
+			case DHCPv6Options::ELAPSED_TIME:
+				$this->outf('%ums', $this->unpack('n', $data) * 10);
+				break;
+
+			case DHCPv6Options::RELAY_MSG:
+				$this->indent++;
+				$this->dumpPacket(new StringReader($data));
+				$this->indent--;
+				break;
+
+			case DHCPv6Options::STATUS_CODE:
+				static $statusCodes = [
+					0 => 'Success',
+					1 => 'Unspecified Failure',
+					2 => 'No Addresses Available',
+					3 => 'No Binding',
+					4 => 'Not On Link',
+					5 => 'Use Multicast',
+				];
+
+				$this->outf('Code: %u (%s)', $code = $this->unpack('n', \substr($data, 0, 2)), $statusCodes[$code] ?? '?');
+				$this->outf('Message: %s', \substr($data, 2));
+				break;
+
+			case DHCPv6Options::VENDOR_CLASS:
+				$this->outf('Enterprise Number: %u (%s)', $en = $this->unpack('N', \substr($data, 0, 4)), IANAEnterpriseNumbers::getVendor($en, 'TODO'));
+
+				$len = \strlen($data);
+				$pos = 4;
+				$cnt = 0;
+				while ($pos < $len) {
+					$cnt++;
+					$len = $this->unpack('n', \substr($data, $pos, 2));
+					$pos += 2;
+					$this->out("No.$cnt");
+					$this->indent++;
+					$this->hexDump(\substr($data, $pos, $len));
+					$this->indent--;
+					$pos += $len;
+				}
+				break;
+
+			case DHCPv6Options::VENDOR_OPTS:
+				$this->outf('Enterprise Number: %u (%s)', $en = $this->unpack('N', \substr($data, 0, 4)), IANAEnterpriseNumbers::getVendor($en, 'TODO'));
+				$this->dumpVendorOptions($en, \substr($data, 4));
+				break;
+
+			case DHCPv6Options::DNS_SERVERS:
+				foreach (str_split($data, 16) as $ip) {
+					$this->out(\inet_ntop($ip));
+				}
+				break;
+
+			case DHCPv6Options::DOMAIN_LIST:
+				$this->out(self::decodeDomain($data));
+				break;
+
+			case DHCPv6Options::INFORMATION_REFRESH_TIME:
+				$this->outf('%us', $this->unpack('N', $data));
+				break;
+
+			case DHCPv6Options::CLIENT_FQDN:
+				$this->out('Flags: SON');
+				$this->outf('       %08b', \ord(\substr($data, 0, 1)));
+				$this->outf('Host: %s', self::decodeDomain(\substr($data, 1)));
+				break;
+
+			default:
 				$this->out('TODO');
-				$this->indent++;
-				$this->hexDump(\substr($data, 24));
-				$this->indent--;
-			}
-
-		} elseif ($code === DHCPv6Options::ORO) {
-			foreach (\unpack('n*c', $data) as $c) {
-				$this->outf('%2u (%s)', $c, DHCPv6Options::getName($c));
-			}
-
-		} elseif ($code === DHCPv6Options::PREFERENCE) {
-			$this->outf('%u (0x%02X)', $pref = $this->unpack('C', $data), $pref);
-
-		} elseif ($code === DHCPv6Options::ELAPSED_TIME) {
-			$this->outf('%ums', $this->unpack('n', $data) * 10);
-
-		} elseif ($code === DHCPv6Options::RELAY_MSG) {
-			$this->indent++;
-			$this->dumpPacket(new StringReader($data));
-			$this->indent--;
-
-		} elseif ($code === DHCPv6Options::STATUS_CODE) {
-			static $statusCodes = [
-				0 => 'Success',
-				1 => 'Unspecified Failure',
-				2 => 'No Addresses Available',
-				3 => 'No Binding',
-				4 => 'Not On Link',
-				5 => 'Use Multicast',
-			];
-
-			$this->outf('Code: %u (%s)', $code = $this->unpack('n', \substr($data, 0, 2)), $statusCodes[$code] ?? '?');
-			$this->outf('Message: %s', \substr($data, 2));
-
-		} elseif ($code === DHCPv6Options::VENDOR_CLASS) {
-			$this->outf('Enterprise Number: %u (%s)', $en = $this->unpack('N', \substr($data, 0, 4)), IANAEnterpriseNumbers::getVendor($en, 'TODO'));
-
-			$len = \strlen($data);
-			$pos = 4;
-			$cnt = 0;
-			while ($pos < $len) {
-				$cnt++;
-				$len = $this->unpack('n', \substr($data, $pos, 2));
-				$pos += 2;
-				$this->out("No.$cnt");
-				$this->indent++;
-				$this->hexDump(\substr($data, $pos, $len));
-				$this->indent--;
-				$pos += $len;
-			}
-
-		} elseif ($code === DHCPv6Options::VENDOR_OPTS) {
-			$this->outf('Enterprise Number: %u (%s)', $en = $this->unpack('N', \substr($data, 0, 4)), IANAEnterpriseNumbers::getVendor($en, 'TODO'));
-			$this->dumpVendorOptions($en, \substr($data, 4));
-
-		} elseif ($code === DHCPv6Options::DNS_SERVERS) {
-			foreach (str_split($data, 16) as $ip) {
-				$this->out(\inet_ntop($ip));
-			}
-
-		} elseif ($code === DHCPv6Options::DOMAIN_LIST) {
-			$this->out(self::decodeDomain($data));
-
-		} elseif ($code === DHCPv6Options::INFORMATION_REFRESH_TIME) {
-			$this->outf('%us', $this->unpack('N', $data));
-
-		} elseif ($code === DHCPv6Options::CLIENT_FQDN) {
-			$this->out('Flags: SON');
-			$this->outf('       %08b', \ord(\substr($data, 0, 1)));
-			$this->outf('Host: %s', self::decodeDomain(\substr($data, 1)));
-
-		} else {
-			$this->out('TODO');
-			if (!$this->beVerbose) {
-				$this->hexDump($data);
-			}
+				if (!$this->beVerbose) {
+					$this->hexDump($data);
+				}
+				break;
 		}
 
 		$this->indent--;
