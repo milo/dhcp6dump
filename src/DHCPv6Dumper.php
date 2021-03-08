@@ -53,7 +53,7 @@ class DHCPv6Dumper
 
 	public function dump(string $prefix = '')
 	{
-		ob_start();
+		\ob_start();
 		$this->out($prefix);
 
 		# Ethernet Frame
@@ -72,7 +72,7 @@ class DHCPv6Dumper
 
 		if ($ethFrameType !== self::ETH_TYPE_IPV6) {
 			$this->notice('Ethernet frame is not type of IPv6.');
-			$this->beVerbose ? ob_end_flush() : ob_end_clean();
+			$this->beVerbose ? \ob_end_flush() : \ob_end_clean();
 			return;
 		}
 
@@ -101,13 +101,13 @@ class DHCPv6Dumper
 		$ipv6Version = $ipv6->h1 >> 28;
 		if ($ipv6Version !== self::PACKET_VERSION_6) {
 			$this->notice('Packet is not version of 6.');
-			$this->beVerbose ? ob_end_flush() : ob_end_clean();
+			$this->beVerbose ? \ob_end_flush() : \ob_end_clean();
 			return;
 		}
 
 		if ($ipv6->nextHeader !== self::PACKET_TYPE_UDP) {
 			$this->notice('Packet is not type of UDP.');
-			$this->beVerbose ? ob_end_flush() : ob_end_clean();
+			$this->beVerbose ? \ob_end_flush() : \ob_end_clean();
 			return;
 		}
 
@@ -125,12 +125,12 @@ class DHCPv6Dumper
 		$udp = $this->unpack('nsrcPort/ndstPort/npayloadLength/nchecksum', $this->data->read(8));
 		if (!in_array($udp->srcPort, [546, 547], true)) {
 			$this->notice('UDP source port is not 546 or 547.');
-			$this->beVerbose ? ob_end_flush() : ob_end_clean();
+			$this->beVerbose ? \ob_end_flush() : \ob_end_clean();
 			return;
 		}
 		if (!in_array($udp->dstPort, [546, 547], true)) {
 			$this->notice('UDP destination port is not 546 or 547.');
-			$this->beVerbose ? ob_end_flush() : ob_end_clean();
+			$this->beVerbose ? \ob_end_flush() : \ob_end_clean();
 			return;
 		}
 
@@ -144,7 +144,7 @@ class DHCPv6Dumper
 		}
 
 		$this->dumpPacket(new StringReader($data));
-		file_put_contents($this->outFile, ob_get_clean(), FILE_APPEND);
+		file_put_contents($this->outFile, \ob_get_clean(), FILE_APPEND);
 	}
 
 
@@ -292,7 +292,7 @@ class DHCPv6Dumper
 					$tmp = \substr($data, $pos, $len);
 					$this->out("No.$cnt");
 					$this->indent++;
-					if (preg_match('/^[a-z0-9\x20-\x3F]+$/iu', $tmp)) {
+					if (\preg_match('/^[a-z0-9\x20-\x3F]+$/iu', $tmp)) {
 						$this->out($tmp);
 					} else {
 						$this->hexDump(\substr($data, $pos, $len));
@@ -309,7 +309,7 @@ class DHCPv6Dumper
 
 			case DHCPv6Options::DNS_SERVERS:
 			case DHCPv6Options::SNTP_SERVERS:
-				foreach (str_split($data, 16) as $ip) {
+				foreach (\str_split($data, 16) as $ip) {
 					$this->out(\inet_ntop($ip));
 				}
 				break;
@@ -367,7 +367,7 @@ class DHCPv6Dumper
 		$this->indent++;
 		if ($type === self::DUID_LLT) {
 			$tmp = $this->unpack('nhwType/Ntime', $data->read(6));
-			$this->outf('Time: %s', date('Y-m-d H:i:s \G\M\T', self::SECONDS_TO_YEAR_2000 + $tmp->time));
+			$this->outf('Time: %s', \date('Y-m-d H:i:s \G\M\T', self::SECONDS_TO_YEAR_2000 + $tmp->time));
 			$this->outf('HW Type: %u%s', $tmp->hwType, $tmp->hwType === self::HW_TYPE_ETHERNET ? ' (ethernet)' : '');
 
 			if ($tmp->hwType === self::HW_TYPE_ETHERNET) {
@@ -390,8 +390,8 @@ class DHCPv6Dumper
 			}
 
 		} elseif ($type === self::DUID_UUID) {
-			$tmp = unpack('Na/nb/nc/nd/Ne/nf', $data->readRest());
-			$this->outf('%08x-%04x-%04x-%04x-%08x%04x', ...array_values($tmp));
+			$tmp = \unpack('Na/nb/nc/nd/Ne/nf', $data->readRest());
+			$this->outf('%08x-%04x-%04x-%04x-%08x%04x', ...\array_values($tmp));
 
 		} else {
 			$this->hexDump($data->readRest());
@@ -413,7 +413,7 @@ class DHCPv6Dumper
 			$this->indent++;
 
 			if ($vendor === IANAEnterpriseNumbers::CISCO_SYSTEMS && $option->code === DHCPv6VendorOptions::CISCO_SYSTEMS_TFTP) {
-				foreach (str_split($raw, 16) as $ip) {
+				foreach (\str_split($raw, 16) as $ip) {
 					$this->out(\inet_ntop($ip));
 				}
 			} else {
@@ -483,9 +483,9 @@ class DHCPv6Dumper
 
 	private static function decodeMac(string $s): string
 	{
-		return \implode(':', array_map(function ($ch) {
+		return \implode(':', \array_map(function ($ch) {
 			return \sprintf('%02x', \ord($ch));
-		}, str_split($s)));
+		}, \str_split($s)));
 	}
 
 
@@ -501,6 +501,6 @@ class DHCPv6Dumper
 			$labels[] = \substr($s, $pos, $len);
 			$pos += $len;
 		}
-		return implode('.', $labels);
+		return \implode('.', $labels);
 	}
 }
