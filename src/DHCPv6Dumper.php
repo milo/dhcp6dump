@@ -341,6 +341,23 @@ class DHCPv6Dumper
 				$this->indent--;
 				break;
 
+			case DHCPv6Options::INTERFACE_ID:
+				$this->out($data);
+				break;
+
+			case DHCPv6Options::CLIENT_LINKLAYER_ADDR:
+				$type = $this->unpack('n', \substr($data, 0, 2));
+				$value = \substr($data, 2);
+
+				$this->outf('Link-layer type: %u%s', $type, $type === self::HW_TYPE_ETHERNET ? ' (ethernet)' : '');
+
+				if ($type === self::HW_TYPE_ETHERNET) {
+					$this->outf('MAC: %s', self::decodeMac($value));
+				} else {
+					$this->hexDump($value);
+				}
+				break;
+
 			default:
 				if ($data !== '') {  # zero-length options are flags
 					$this->out('TODO');
